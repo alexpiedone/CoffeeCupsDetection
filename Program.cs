@@ -7,6 +7,9 @@ public class Program
     {
         //CoffeeBoxDetector.DetectTextWithOCR(Models._predictSingleImage, Path.Combine(Models._assetsPath, "output"));
 
-        CoffeeBoxDetector.DetectObjectsMatchingTemplates(Models._predictSingleImage);
+        foreach (var file in CoffeeBoxDetector.imagesToPredict)
+        {
+            CoffeeBoxDetector.DetectObjectsMatchingTemplates(file);
+        }
     }
 }
