@@ -21,40 +21,32 @@ public class Utilities
         return resizedTemplate;
     }
 
-    public static bool IsRegionFree(Mat mask, Rectangle region, int overlapThreshold = 30)
+    public static bool IsRegionFree(Mat mask, Rectangle region, int overlapTolerance = 30)
     {
-        if (region.X < -overlapThreshold || region.Y < -overlapThreshold ||
-            region.X + region.Width > mask.Cols + overlapThreshold ||
-            region.Y + region.Height > mask.Rows + overlapThreshold ||
+        if (region.X < 0 || region.Y < 0 ||
+            region.X + region.Width > mask.Cols ||
+            region.Y + region.Height > mask.Rows ||
             region.Width <= 0 || region.Height <= 0)
         {
             return false; // Region invalid
         }
 
-        foreach (var existingRegion in Utilities.DetectedRegions)
-        {
-            if (IsOverlapping(existingRegion, region, overlapThreshold))
-                return false; // Dacă există suprapunere peste limită
-        }
+        Mat roi = new Mat(mask, region);
+        MCvScalar mean = CvInvoke.Mean(roi);
 
-        return true;
+        // Calculăm procentajul pixelilor liberi (valoare 0)
+        double freeRatio = mean.V0 / 255.0;
+
+        // Permitem overlap dacă cel puțin 30% din regiune este liberă
+        return freeRatio < (overlapTolerance / 100.0);
     }
-
-    private static bool IsOverlapping(Rectangle existing, Rectangle newRegion, int threshold)
-    {
-        return !(newRegion.Right < existing.Left - threshold ||
-                 newRegion.Left > existing.Right + threshold ||
-                 newRegion.Bottom < existing.Top - threshold ||
-                 newRegion.Top > existing.Bottom + threshold);
-    }
-
 
     public static void ExcludeRegionFromMask(Mat mask, Rectangle region)
     {
         CvInvoke.Rectangle(mask, region, new MCvScalar(255), -1); // Mark the region with white (255) to indicate exclusion
     }
 
-    public static Mat[] RotateImageMultipleTimes(Mat subImage, int rotations = 7, double angleStep = 45)
+    public static Mat[] RotateImageMultipleTimes(Mat subImage, int rotations = 11, double angleStep = 30)
     {
         Mat[] rotatedImages = new Mat[rotations];
         Size size = subImage.Size;

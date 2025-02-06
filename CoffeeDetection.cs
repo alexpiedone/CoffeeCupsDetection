@@ -8,11 +8,10 @@ using teste;
 
 public static class CoffeeBoxDetector
 {
-    private const double AreaThreshold = 1000; // Minimum area to consider as a box
-    private const double AspectRatioThreshold = 0.7; // Aspect ratio tolerance for boxes
+    private const double AreaThreshold = 1000; 
+    private const double AspectRatioThreshold = 0.7; 
     static readonly string[] templatePaths = Directory.GetFiles(Models._samplesFolder, "*.jpg");
     public static readonly string[] imagesToPredict = Directory.GetFiles(Models._imagesFolder, "*.jpg");
-
 
 
     public static void DetectObjectsMatchingTemplates(string path)
@@ -40,24 +39,24 @@ public static class CoffeeBoxDetector
                     {
                         if (resultData[y, x] > 0.55)
                         {
-                            Point matchPoint = new Point(x - 5, y - 5);
-                            Rectangle matchRect = new Rectangle(matchPoint, new Size(resizedTemplate.Width +10, resizedTemplate.Height +10));
+                            Point matchPoint = new Point(x - 20, y - 30);
+                            Rectangle matchRect = new Rectangle(matchPoint, new Size(resizedTemplate.Width + 40, resizedTemplate.Height + 60));
 
-                            if (Utilities.IsRegionFree(exclusionMask, matchRect))
+                            if (Utilities.IsRegionFree(exclusionMask, matchRect, 70))
                             {
                                 Mat subImage = new Mat(image, matchRect);
 
                                 string templateName = Path.GetFileNameWithoutExtension(templatePath);
 
                                 Utilities.ExcludeRegionFromMask(exclusionMask, matchRect);
-                               
+
                                 CvInvoke.Rectangle(image, matchRect, new MCvScalar(0, 255, 0), 2);
 
                                 var detectedText = DetectTextWithOCR(subImage);
                                 if (!string.IsNullOrEmpty(detectedText))
                                 {
                                     Point textPosition = new Point(matchRect.X, matchRect.Y + 15);
-                                    CvInvoke.PutText(image, detectedText, textPosition, FontFace.HersheySimplex, 0.8, new MCvScalar(50, 120, 255), 2);
+                                    CvInvoke.PutText(image, detectedText, textPosition, FontFace.HersheyPlain, 1.2, new MCvScalar(50, 120, 255), 3);
                                 }
 
                             }
@@ -68,7 +67,6 @@ public static class CoffeeBoxDetector
         }
         image.Save(Path.Combine(Models._outputFolder, string.Concat(Path.GetFileNameWithoutExtension(path), "_output.jpg")));
     }
-
 
     public static string DetectTextWithOCR(Mat image, string? imagePath = null)
     {
@@ -96,7 +94,7 @@ public static class CoffeeBoxDetector
         CvInvoke.GaussianBlur(grayImage, grayImage, new Size(3, 3), 0);
         CvInvoke.Threshold(grayImage, grayImage, 0, 255, ThresholdType.Otsu | ThresholdType.Binary);
         Mat kernel = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(1, 1), new Point(-1, -1));
-          //piedone-dupa teste am observat ca cele mai bune rezultate le a obtinut MorphOp.Dilate
+        //piedone-dupa teste am observat ca cele mai bune rezultate le a obtinut MorphOp.Dilate
         CvInvoke.MorphologyEx(grayImage, grayImage, MorphOp.Dilate, kernel, new Point(-1, -1), 1, BorderType.Default, new MCvScalar());
 
         string label = PerformOCR(grayImage);
@@ -143,7 +141,6 @@ public static class CoffeeBoxDetector
     //           results[mode] = label;
     //       }
     //   }
-
 
     public static Mat DeskewImage(Mat grayImage)
     {
